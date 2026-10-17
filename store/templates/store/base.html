@@ -1,0 +1,170 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#fff8fb">
+  <title>{% block title %}Viji’s Clip Pap — cute things for your hair{% endblock %}</title>
+  <meta name="description" content="Meet your new favorite hair accessories. Shop cute claw clips, satin scrunchies, bows and mini clips at Viji’s Clip Pap.">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{--pink:#e9789b;--rose:#bd5276;--ink:#30252a;--muted:#89777e;--blush:#fff5f8}
+    *{box-sizing:border-box}
+    body{font-family:"Poppins",sans-serif;color:var(--ink);background:#fffdfd}
+    h1,h2,h3,.serif{font-family:"Playfair Display",serif}
+    a,button{transition:all .2s ease}
+    .shell{width:min(1240px,calc(100% - 40px));margin-inline:auto}
+    .header{position:sticky;top:0;z-index:40;background:rgba(255,253,253,.94);backdrop-filter:blur(18px);border-bottom:1px solid #f5e8ed}
+    .icon-button{width:42px;height:42px;border:1px solid #f0e4e8;border-radius:50%;display:grid;place-items:center;position:relative;background:#fff}
+    .icon-button:hover{background:#fff2f6;border-color:#f3cada;color:var(--rose)}
+    .cart-badge{position:absolute;top:-4px;right:-5px;min-width:19px;height:19px;border-radius:99px;background:#df6d91;color:#fff;font-size:10px;font-weight:700;display:grid;place-items:center;padding:0 5px}
+    .category-nav{scrollbar-width:none}.category-nav::-webkit-scrollbar{display:none}
+    .category-link{white-space:nowrap;border-bottom:2px solid transparent}
+    .category-link.active,.category-link:hover{color:var(--rose);border-color:#e9789b}
+    .hero{background:linear-gradient(112deg,#fff1f5 0%,#ffe3ec 48%,#f7d9ea 100%);overflow:hidden;position:relative}
+    .hero:after{content:"";position:absolute;width:390px;height:390px;border-radius:50%;background:#ffffff70;right:-110px;top:-180px}
+    .hero-art{filter:drop-shadow(0 24px 30px #c5748a30);transform:rotate(4deg)}
+    .section-kicker{letter-spacing:.19em;text-transform:uppercase;color:var(--rose);font-size:11px;font-weight:700}
+    .product-card{border:1px solid #f2e8eb;box-shadow:0 5px 22px #4e24300a}
+    .product-card:hover{transform:translateY(-5px);box-shadow:0 18px 38px #77364e18}
+    .product-image{height:240px;background:#fbf3f5;overflow:hidden}
+    .product-image img{width:100%;height:100%;object-fit:cover;transition:transform .5s}
+    .product-card:hover .product-image img{transform:scale(1.045)}
+    .category-card img{transition:transform .45s}
+    .category-card:hover img{transform:scale(1.06)}
+    .wish-button.is-saved{color:#df6d91;background:#fff0f4}
+    .message{animation:fadein .25s ease-out}
+    @keyframes fadein{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
+    @media(max-width:640px){.shell{width:min(100% - 28px,1240px)}.product-image{height:240px}.hero-art{max-height:210px}.hero-copy h1{font-size:42px!important}}
+  </style>
+  {% block extra_head %}{% endblock %}
+</head>
+<body class="min-h-screen flex flex-col">
+  <header class="header">
+    <div class="shell min-h-[76px] flex items-center gap-5">
+      <button type="button" id="menu-toggle" aria-label="Open categories" aria-expanded="false" class="md:hidden icon-button shrink-0">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+      <a href="{% url 'home' %}" class="flex items-center gap-2 shrink-0" aria-label="Viji’s Clip Pap home">
+        <span class="grid place-items-center w-10 h-10 rounded-2xl bg-pink-100 text-xl">🎀</span>
+        <span class="font-bold tracking-[.08em] text-[15px] sm:text-[17px] text-[#38262e]">VIJI’S <span class="text-[#d96d90]">CLIP PAP</span></span>
+      </a>
+
+      <nav class="hidden md:flex items-center justify-center gap-6 flex-1" aria-label="Shop categories">
+        {% for category in nav_categories %}
+        <a class="category-link flex items-center gap-1.5 py-7 text-[11px] tracking-[.12em] font-bold {% if active_category.slug == category.slug %}active{% endif %}" href="{% url 'category' category.slug %}">
+          <img src="{% static 'store/images/' %}{{ category.slug }}.svg" alt="" aria-hidden="true" class="h-4 w-4 shrink-0 object-contain">
+          {{ category.name|upper }}
+        </a>
+        {% endfor %}
+      </nav>
+
+      <form action="{% url 'home' %}" method="get" class="hidden sm:flex items-center h-10 max-w-[210px] lg:max-w-[250px] flex-1 rounded-full border border-[#f0e4e8] bg-white px-4 focus-within:border-pink-300">
+        <svg class="shrink-0 text-[#a38d95]" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m16 16 4 4"/></svg>
+        <input name="q" value="{{ search_query }}" placeholder="Find your fave..." aria-label="Search products" class="w-full min-w-0 bg-transparent outline-none px-2 text-xs">
+      </form>
+      <div class="ml-auto sm:ml-0 flex items-center gap-2">
+        <button type="button" id="wishlist-toggle" aria-label="View saved favorites" class="icon-button hidden sm:grid text-[#6e5961]">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M20.8 8.7c0 5.1-8.8 10-8.8 10s-8.8-4.9-8.8-10a4.6 4.6 0 0 1 8.8-1.8 4.6 4.6 0 0 1 8.8 1.8Z"/></svg>
+          <span id="wishlist-count" class="cart-badge hidden">0</span>
+        </button>
+        <a href="{% url 'cart' %}" aria-label="Shopping bag" class="icon-button text-[#6e5961]">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 8h14l1 12H4L5 8Z"/><path d="M9 9V6a3 3 0 0 1 6 0v3"/></svg>
+          <span class="cart-badge">{{ cart_count }}</span>
+        </a>
+      </div>
+    </div>
+    <div id="mobile-menu" class="hidden md:hidden border-t border-[#f4e8ec] bg-white">
+      <nav class="shell category-nav flex gap-6 overflow-x-auto py-3" aria-label="Mobile shop categories">
+        {% for category in nav_categories %}
+        <a class="category-link flex shrink-0 items-center gap-1.5 text-[10px] tracking-[.1em] font-bold py-2 {% if active_category.slug == category.slug %}active{% endif %}" href="{% url 'category' category.slug %}">
+          <img src="{% static 'store/images/' %}{{ category.slug }}.svg" alt="" aria-hidden="true" class="h-4 w-4 shrink-0 object-contain">
+          {{ category.name|upper }}
+        </a>
+        {% endfor %}
+      </nav>
+    </div>
+    <div class="sm:hidden border-t border-[#f8eef1] py-2">
+      <form action="{% url 'home' %}" method="get" class="shell flex items-center rounded-full bg-[#fbf5f7] px-4 py-2">
+        <svg class="text-[#a38d95]" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m16 16 4 4"/></svg>
+        <input name="q" value="{{ search_query }}" placeholder="Find your fave..." aria-label="Search products" class="w-full bg-transparent outline-none px-2 text-xs">
+      </form>
+    </div>
+  </header>
+
+  {% if messages %}
+  <div class="shell pt-4 space-y-2" aria-live="polite">
+    {% for message in messages %}
+    <div class="message rounded-xl px-4 py-3 text-sm {% if message.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-pink-50 text-[#9b4e69]{% endif %}">{{ message }}</div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <main class="flex-1">{% block content %}{% endblock %}</main>
+  <footer class="mt-20 bg-[#34252b] text-white">
+    <div class="shell py-12 grid gap-8 md:grid-cols-[1fr_auto] items-center">
+      <div>
+        <a href="{% url 'home' %}" class="font-bold tracking-[.08em] text-lg">VIJI’S <span class="text-pink-300">CLIP PAP</span></a>
+        <p class="mt-3 text-sm text-white/65 max-w-md">Little details, main-character energy. Cute things for your hair, made for your every day.</p>
+      </div>
+      <a href="https://wa.me/?text=Hi%20Viji%27s%20Clip%20Pap!%20I%27d%20love%20to%20shop%20your%20hair%20accessories." target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 rounded-full bg-white/10 px-5 py-3 text-sm hover:bg-white/20">
+        <span aria-hidden="true">💬</span> Chat & shop on WhatsApp
+      </a>
+    </div>
+    <div class="shell border-t border-white/10 py-4 text-xs text-white/45">© {% now "Y" %} Viji’s Clip Pap · Made with a little extra love ♡</div>
+  </footer>
+  <script>
+    const menuToggle = document.getElementById("menu-toggle");
+    const mobileMenu = document.getElementById("mobile-menu");
+    menuToggle?.addEventListener("click", () => {
+      const open = menuToggle.getAttribute("aria-expanded") !== "true";
+      menuToggle.setAttribute("aria-expanded", String(open));
+      mobileMenu.classList.toggle("hidden", !open);
+    });
+
+    const savedKey = "clippap-favorites";
+    const getSaved = () => {
+      try { return JSON.parse(localStorage.getItem(savedKey) || "[]"); }
+      catch { return []; }
+    };
+    const updateFavorites = () => {
+      const saved = getSaved();
+      document.querySelectorAll("[data-wishlist-id]").forEach((button) => {
+        const active = saved.includes(button.dataset.wishlistId);
+        button.classList.toggle("is-saved", active);
+        button.setAttribute("aria-pressed", String(active));
+      });
+      const count = document.getElementById("wishlist-count");
+      if (count) {
+        count.textContent = saved.length;
+        count.classList.toggle("hidden", saved.length === 0);
+      }
+    };
+    document.querySelectorAll("[data-wishlist-id]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const saved = getSaved();
+        const id = button.dataset.wishlistId;
+        localStorage.setItem(savedKey, JSON.stringify(saved.includes(id) ? saved.filter((item) => item !== id) : [...saved, id]));
+        updateFavorites();
+      });
+    });
+    document.getElementById("wishlist-toggle")?.addEventListener("click", () => {
+      const saved = getSaved();
+      if (!saved.length) {
+        alert("Tap the heart on anything you love to save it here ♡");
+        return;
+      }
+      document.querySelectorAll("[data-product-card]").forEach((card) => {
+        card.classList.toggle("hidden", !saved.includes(card.dataset.productId));
+      });
+      document.getElementById("product-grid")?.scrollIntoView({ behavior: "smooth" });
+    });
+    updateFavorites();
+  </script>
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html>

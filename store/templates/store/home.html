@@ -1,0 +1,82 @@
+{% extends "store/base.html" %}
+{% load static %}
+{% block content %}
+<section class="hero">
+  <div class="shell grid min-h-[440px] grid-cols-1 items-center gap-2 py-12 sm:grid-cols-[1.05fr_.95fr] sm:py-10">
+    <div class="hero-copy relative z-10 max-w-[580px]">
+      <div class="inline-flex items-center gap-2 rounded-full border border-white/80 bg-white/65 px-4 py-2 text-[10px] font-bold uppercase tracking-[.17em] text-[#a34e6b]"><span>✦</span> A little bow goes a long way</div>
+      <h1 class="mt-5 text-[54px] leading-[1.08] tracking-[-.04em] text-[#3a2830]">Your hair deserves <span class="text-[#d9698d]">cute things.</span></h1>
+      <p class="mt-4 max-w-[420px] text-[15px] leading-7 text-[#745a64]">Meet your new everyday favorites. Little accessories, a whole lot of main-character energy.</p>
+      <div class="mt-7 flex flex-wrap gap-3">
+        <a href="#shop" class="rounded-full bg-[#d9698d] px-6 py-3.5 text-xs font-bold text-white shadow-lg shadow-pink-900/10 hover:-translate-y-0.5 hover:bg-[#c6577c]">Shop the collection <span aria-hidden="true">→</span></a>
+        <a href="#categories" class="rounded-full border border-[#dfa6b8] bg-white/60 px-6 py-3.5 text-xs font-bold text-[#8e4d64] hover:bg-white">Find your style</a>
+      </div>
+      <p class="mt-7 text-[11px] font-medium text-[#966c7a]">♡ Cute styles · Everyday comfort · Just for you</p>
+    </div>
+    <div class="relative z-10 mx-auto w-full max-w-[470px]">
+      <div class="absolute -left-3 top-8 z-10 rounded-2xl bg-white px-4 py-3 shadow-xl shadow-pink-900/10"><span class="text-[9px] uppercase tracking-wider text-[#9c8790]">your new fave</span><p class="mt-0.5 text-xs font-bold">Big clip energy ✨</p></div>
+      <img class="hero-art mx-auto w-full max-w-[430px] rounded-[38%_42%_30%_30%] object-cover" src="{% static 'store/images/claw-clips.svg' %}" alt="Illustration of a pastel pink claw clip">
+      <span class="absolute bottom-2 right-0 rounded-full bg-white px-4 py-2 text-[11px] font-bold text-[#a14c68] shadow-lg">made for your hair ♡</span>
+    </div>
+  </div>
+</section>
+
+<section id="categories" class="shell pt-20">
+  <div class="flex flex-wrap items-end justify-between gap-4">
+    <div><p class="section-kicker">Find your kind of cute</p><h2 class="mt-2 text-3xl tracking-tight">Shop by category</h2></div>
+    <p class="max-w-xs text-sm leading-6 text-[#95848a]">From messy-bun mornings to the going-out look. We have a little something.</p>
+  </div>
+  <div class="mt-8 grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
+    {% for category in categories %}
+    <a href="{% url 'category' category.slug %}" class="category-card group overflow-hidden rounded-[24px] border border-[#f2e8eb] bg-white">
+      <div class="h-[145px] overflow-hidden bg-[#fbf1f4] sm:h-[190px]">
+        <img class="h-full w-full object-cover" src="{% static 'store/images/' %}{{ category.slug }}.svg" alt="{{ category.name }} collection">
+      </div>
+      <div class="flex items-center justify-between p-4 sm:p-5">
+        <div><h3 class="text-[14px] font-bold sm:text-base">{{ category.name }}</h3><p class="mt-1 text-[10px] text-[#a28f96]">Explore the edit</p></div>
+        <span class="grid h-8 w-8 place-items-center rounded-full bg-[#fff1f5] text-[#c96282] group-hover:bg-[#e9789b] group-hover:text-white">→</span>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="shell pt-20">
+  <div class="flex items-end justify-between gap-4">
+    <div><p class="section-kicker">The pieces on repeat</p><h2 class="mt-2 text-3xl tracking-tight">Trending right now</h2></div>
+    <a href="#shop" class="hidden text-xs font-bold text-[#bd5276] hover:underline sm:block">See everything →</a>
+  </div>
+  {% for category, trending in trending_by_category %}
+    {% if trending %}
+    <div class="mt-8">
+      <div class="mb-4 flex items-center gap-3"><h3 class="text-lg font-semibold">{{ category.name }}</h3><span class="h-px flex-1 bg-[#f1e5e9]"></span><a href="{% url 'category' category.slug %}" class="text-[10px] font-bold text-[#bd5276]">Shop all →</a></div>
+      <div class="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
+        {% for product in trending %}{% include "store/_product_card.html" %}{% endfor %}
+      </div>
+    </div>
+    {% endif %}
+  {% endfor %}
+</section>
+
+<section id="shop" class="shell pt-20">
+  <div class="flex flex-wrap items-end justify-between gap-4">
+    <div><p class="section-kicker">Your next little obsession</p><h2 class="mt-2 text-3xl tracking-tight">{% if search_query %}Search results{% else %}The whole collection{% endif %}</h2></div>
+    {% if search_query %}<p class="text-xs text-[#95848a]">Showing results for “{{ search_query }}”</p>{% endif %}
+  </div>
+  <nav class="category-nav mt-6 flex gap-2 overflow-x-auto pb-2" aria-label="Filter products by category">
+    <a href="{% url 'home' %}#shop" class="whitespace-nowrap rounded-full bg-[#372a30] px-5 py-2.5 text-[11px] font-bold text-white">All the cute</a>
+    {% for category in categories %}<a href="{% url 'category' category.slug %}" class="inline-flex items-center gap-2 whitespace-nowrap rounded-full border border-[#f0e4e8] bg-white px-5 py-2.5 text-[11px] font-semibold text-[#765e67] hover:border-pink-300 hover:text-[#bd5276]"><img src="{% static 'store/images/' %}{{ category.slug }}.svg" alt="" aria-hidden="true" class="h-4 w-4 object-contain">{{ category.name }}</a>{% endfor %}
+  </nav>
+  <div id="product-grid" class="mt-5 grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
+    {% for product in products %}{% include "store/_product_card.html" %}{% empty %}
+    <div class="col-span-full rounded-3xl bg-[#fff5f8] px-5 py-16 text-center"><p class="text-2xl">No cute finds just yet ♡</p><p class="mt-2 text-sm text-[#95848a]">Try another search or browse all accessories.</p><a href="{% url 'home' %}" class="mt-5 inline-block text-xs font-bold text-[#bd5276]">Back to the shop →</a></div>
+    {% endfor %}
+  </div>
+</section>
+<section class="shell pt-20">
+  <div class="flex flex-col items-center justify-between gap-4 rounded-[26px] bg-[#fff2f6] px-6 py-8 text-center sm:flex-row sm:px-10 sm:text-left">
+    <div><p class="section-kicker">Your group chat wants this</p><h2 class="mt-2 text-2xl">Good hair days, on repeat.</h2><p class="mt-1 text-sm text-[#89777e]">Find your everyday favorites in the Viji’s Clip Pap edit.</p></div>
+    <a href="#shop" class="shrink-0 rounded-full bg-white px-6 py-3 text-xs font-bold text-[#a34e6b] shadow-sm hover:bg-[#e9789b] hover:text-white">Find your fave ♡</a>
+  </div>
+</section>
+{% endblock %}

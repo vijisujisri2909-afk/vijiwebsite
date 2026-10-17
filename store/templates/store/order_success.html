@@ -1,0 +1,97 @@
+{% extends "store/base.html" %}
+{% block title %}Order {{ order.order_id }} — Viji’s Clip Pap{% endblock %}
+{% block content %}
+<section class="shell py-14 text-center sm:py-20">
+  <div class="success-check mx-auto grid h-20 w-20 place-items-center rounded-full bg-[#e9f7ee] text-4xl text-[#43875a]">
+    <svg width="42" height="42" viewBox="0 0 48 48" fill="none" aria-hidden="true"><circle cx="24" cy="24" r="21" stroke="currentColor" stroke-width="3"/><path class="check-mark" d="m13 24 7 7 15-16" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </div>
+  <style>
+    .success-check{animation:pop-in .45s cubic-bezier(.2,.9,.3,1.3) both}.check-mark{stroke-dasharray:32;stroke-dashoffset:32;animation:draw-check .5s .25s ease forwards}@keyframes pop-in{from{opacity:0;transform:scale(.45)}to{opacity:1;transform:scale(1)}}@keyframes draw-check{to{stroke-dashoffset:0}}
+  </style>
+  <p class="section-kicker mt-7">The cute stuff is coming</p>
+  <h1 class="mt-3 text-3xl sm:text-4xl">Order placed successfully!</h1>
+  <p class="mx-auto mt-4 max-w-md text-sm leading-6 text-[#806a73]">Thanks, {{ order.customer_name }}. Your order is on its way to becoming your new favorite.</p>
+
+  <div class="mx-auto mt-7 max-w-lg rounded-[24px] bg-[#fff5f8] p-5 text-left sm:p-7">
+    <div class="flex flex-wrap justify-between gap-2 border-b border-[#ecdde3] pb-4">
+      <div><p class="text-[10px] uppercase tracking-wider text-[#95848a]">Order ID</p><p class="mt-1 text-lg font-bold text-[#bd5276]">#{{ order.order_id }}</p></div>
+      <div class="text-right"><p class="text-[10px] uppercase tracking-wider text-[#95848a]">Payment</p><p class="mt-1 text-xs font-semibold">{{ order.get_payment_method_display }} · {{ order.get_payment_status_display }}</p></div>
+    </div>
+    <div class="space-y-2 py-4">
+      {% for item in order.items.all %}<div class="flex justify-between gap-4 text-xs"><span>{{ item.product_name }} × {{ item.quantity }}</span><span class="shrink-0 font-semibold">Rs. {{ item.line_total }}</span></div>{% endfor %}
+    </div>
+    <div class="flex justify-between border-y border-[#ecdde3] py-3 text-xs text-[#806a73]"><span>Delivery charge</span><span>Rs. 40</span></div>
+    <div class="flex justify-between pt-4 font-bold"><span>Total amount</span><span class="text-[#bd5276]">Rs. {{ order.total_amount }}</span></div>
+    <div class="mt-5 rounded-2xl bg-white p-4">
+      <p class="text-[10px] font-bold uppercase tracking-wider text-[#95848a]">Delivery address</p>
+      <p class="mt-2 text-xs leading-5">{{ order.customer_name }} · {{ order.phone }}</p>
+      <p class="text-xs leading-5 text-[#806a73]">{{ order.delivery_address }}</p>
+    </div>
+    {% if order.payment_method == "upi" %}
+      <p class="mt-4 rounded-xl bg-white p-3 text-xs leading-5 text-[#806a73]">Your UPI payment is awaiting manual confirmation. {% if order.payment_proof %}Payment screenshot received.{% else %}You can share your payment screenshot with us on WhatsApp.{% endif %}</p>
+    {% elif order.payment_method == "razorpay" and order.gateway_order_id and order.payment_status != "paid" %}
+      <p class="mt-4 rounded-xl bg-white p-3 text-xs leading-5 text-[#806a73]">Pay securely through Razorpay. Your payment is marked paid only after the signed payment response is verified.</p>
+      <button type="button" id="pay-with-razorpay" class="mt-3 w-full rounded-full bg-[#d9698d] px-5 py-3 text-xs font-bold text-white hover:bg-[#c6577c]">Pay securely with Razorpay</button>
+      <form method="post" action="{% url 'verify_payment' order.order_id %}" id="razorpay-verification" class="hidden">
+        {% csrf_token %}
+        <input type="hidden" name="razorpay_payment_id">
+        <input type="hidden" name="razorpay_order_id">
+        <input type="hidden" name="razorpay_signature">
+      </form>
+    {% elif order.payment_method == "razorpay" %}
+      <p class="mt-4 rounded-xl bg-white p-3 text-[11px] leading-5 text-[#806a73]">Demo only: this does not contact Razorpay or charge a card.</p>
+      {% if order.payment_status != "paid" %}
+      <form method="post" action="{% url 'mock_payment' order.order_id %}" class="mt-3" id="mock-payment-form">
+        {% csrf_token %}
+        <button type="button" id="open-payment-demo" class="w-full rounded-full bg-[#d9698d] px-5 py-3 text-xs font-bold text-white hover:bg-[#c6577c]">Continue to mock card payment</button>
+      </form>
+      <dialog id="payment-demo" class="w-[min(420px,calc(100%-32px))] rounded-[24px] border-0 p-0 shadow-2xl backdrop:bg-[#34252b]/50">
+        <div class="p-6 text-left"><p class="section-kicker">Card payment demo</p><h2 class="mt-2 text-2xl">Simulate payment?</h2><p class="mt-3 text-sm leading-6 text-[#806a73]">This demo will mark the order as paid. It does not collect card details or transfer money.</p>
+          <div class="mt-6 flex gap-3"><button type="button" id="cancel-payment-demo" class="flex-1 rounded-full border border-[#eee1e6] px-4 py-3 text-xs font-semibold">Not now</button><button type="submit" form="mock-payment-form" class="flex-1 rounded-full bg-[#d9698d] px-4 py-3 text-xs font-bold text-white">Confirm demo payment</button></div>
+        </div>
+      </dialog>
+      {% else %}<p class="mt-4 rounded-xl bg-white p-3 text-xs font-semibold text-[#43875a]">Demo payment marked paid.</p>{% endif %}
+    {% else %}
+      <p class="mt-4 rounded-xl bg-white p-3 text-xs text-[#806a73]">Pay in cash when your order is delivered.</p>
+    {% endif %}
+  </div>
+
+  <div class="mt-7 flex flex-wrap justify-center gap-3">
+    <a href="{% url 'home' %}" class="rounded-full bg-[#d9698d] px-6 py-4 text-xs font-bold text-white hover:bg-[#c6577c]">Continue shopping</a>
+    <a href="{{ whatsapp_url }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 rounded-full bg-[#347d5c] px-6 py-4 text-xs font-bold text-white hover:bg-[#276748]"><span>💬</span> Message us on WhatsApp</a>
+  </div>
+</section>
+{% endblock %}
+{% block extra_scripts %}
+{% if order.gateway_order_id and order.payment_status != "paid" %}
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+{% endif %}
+<script>
+  const paymentDialog = document.getElementById("payment-demo");
+  document.getElementById("open-payment-demo")?.addEventListener("click", () => paymentDialog.showModal());
+  document.getElementById("cancel-payment-demo")?.addEventListener("click", () => paymentDialog.close());
+  document.getElementById("pay-with-razorpay")?.addEventListener("click", () => {
+    if (typeof window.Razorpay === "undefined") {
+      alert("Razorpay checkout could not be loaded. Please try again.");
+      return;
+    }
+    const checkout = new window.Razorpay({
+      key: "{{ razorpay_key_id|escapejs }}",
+      amount: "{{ razorpay_amount }}",
+      currency: "INR",
+      name: "Viji’s Clip Pap",
+      description: "Order #{{ order.order_id }}",
+      order_id: "{{ order.gateway_order_id|escapejs }}",
+      handler: (response) => {
+        const form = document.getElementById("razorpay-verification");
+        form.elements.razorpay_payment_id.value = response.razorpay_payment_id;
+        form.elements.razorpay_order_id.value = response.razorpay_order_id;
+        form.elements.razorpay_signature.value = response.razorpay_signature;
+        form.requestSubmit();
+      },
+      modal: { ondismiss: () => {} }
+    });
+    checkout.open();
+  });
+</script>
+{% endblock %}

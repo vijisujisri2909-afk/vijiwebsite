@@ -1,0 +1,69 @@
+{% extends "store/base.html" %}
+{% load static %}
+{% block title %}Your bag — Viji’s Clip Pap{% endblock %}
+{% block content %}
+<section class="shell pt-12">
+  <p class="section-kicker">Your little happy place</p>
+  <h1 class="mt-2 text-4xl">Your bag <span class="text-lg font-normal text-[#a28f96]">({{ cart_items|length }} {% if cart_items|length == 1 %}item{% else %}items{% endif %})</span></h1>
+  {% if cart_items %}
+  <div class="mt-8 grid gap-8 lg:grid-cols-[1fr_360px]">
+    <div class="space-y-4">
+      {% for item in cart_items %}
+      <article class="flex gap-4 rounded-[22px] border border-[#f1e7ea] bg-white p-3 sm:gap-5 sm:p-5">
+        <div class="h-28 w-28 shrink-0 overflow-hidden rounded-2xl bg-[#fbf1f4] sm:h-36 sm:w-36">
+          {% if item.product.has_uploaded_image %}<img class="h-full w-full object-cover" src="{{ item.product.image.url }}" alt="{{ item.product.name }}" onerror="this.onerror=null;this.src='{% static 'store/images/default.svg' %}'">{% else %}<img class="h-full w-full object-cover" src="{% static 'store/images/' %}{{ item.product.category.slug }}.svg" alt="{{ item.product.name }}" onerror="this.onerror=null;this.src='{% static 'store/images/default.svg' %}'">{% endif %}
+        </div>
+        <div class="flex min-w-0 flex-1 flex-col justify-between py-1">
+          <div><a href="{% url 'category' item.product.category.slug %}" class="text-[9px] font-bold uppercase tracking-widest text-[#bd5276]">{{ item.product.category.name }}</a><h2 class="mt-1 text-base font-semibold">{{ item.product.name }}</h2><p class="mt-1 text-xs text-[#95848a]">{{ item.product.color }}</p></div>
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <form method="post" action="{% url 'update_cart_item' item.pk %}" class="flex items-center gap-2">
+              {% csrf_token %}
+              <button type="button" data-quantity-step="-1" aria-label="Decrease quantity" class="grid h-7 w-7 place-items-center rounded-full border border-[#eee1e6] text-sm hover:bg-pink-50">−</button>
+              <input id="quantity-{{ item.pk }}" name="quantity" type="number" min="1" max="{{ item.product.stock }}" value="{{ item.quantity }}" class="w-14 rounded-lg border border-[#eee1e6] px-2 py-1.5 text-center text-xs">
+              <button type="button" data-quantity-step="1" aria-label="Increase quantity" class="grid h-7 w-7 place-items-center rounded-full border border-[#eee1e6] text-sm hover:bg-pink-50">+</button>
+              <button class="text-[10px] font-bold text-[#bd5276] hover:underline">Update</button>
+            </form>
+            <span class="font-bold text-[#bd5276]">Rs. {{ item.line_total }}</span>
+          </div>
+        </div>
+        <form method="post" action="{% url 'remove_cart_item' item.pk %}" class="self-start">
+          {% csrf_token %}<button type="submit" aria-label="Remove {{ item.product.name }}" class="rounded-full px-2 py-1 text-lg text-[#a28f96] hover:bg-pink-50 hover:text-[#bd5276]">×</button>
+        </form>
+      </article>
+      {% endfor %}
+      <a href="{% url 'home' %}#shop" class="inline-flex items-center gap-2 pt-2 text-xs font-bold text-[#bd5276] hover:underline">← Keep browsing</a>
+    </div>
+    <aside class="h-fit rounded-[24px] bg-[#fff5f8] p-6">
+      <h2 class="text-xl">The little details</h2>
+      <div class="mt-5 flex justify-between text-sm text-[#806a73]"><span>Subtotal</span><span>Rs. {{ cart_subtotal }}</span></div>
+      <div class="mt-3 flex justify-between text-sm text-[#806a73]"><span>Delivery</span><span>Rs. {{ delivery_charge }}</span></div>
+      <div class="my-5 border-t border-[#ecdde3]"></div>
+      <div class="flex justify-between font-bold"><span>Total</span><span class="text-[#bd5276]">Rs. {{ cart_total }}</span></div>
+      <a href="{% url 'checkout' %}" class="mt-6 block rounded-full bg-[#d9698d] px-5 py-4 text-center text-xs font-bold text-white hover:bg-[#c6577c]">Continue to checkout →</a>
+      <p class="mt-4 text-center text-[10px] text-[#95848a]">♡ A little treat, on its way to you</p>
+    </aside>
+  </div>
+  {% else %}
+  <div class="my-12 rounded-[28px] bg-[#fff5f8] px-5 py-16 text-center">
+    <span class="text-5xl">🛍️</span><h2 class="mt-5 text-2xl">Your bag is waiting for something cute.</h2><p class="mt-2 text-sm text-[#95848a]">A little clip, a scrunchie, your new favorite thing?</p>
+    <a href="{% url 'home' %}#shop" class="mt-6 inline-block rounded-full bg-[#d9698d] px-6 py-3.5 text-xs font-bold text-white hover:bg-[#c6577c]">Find your fave ♡</a>
+  </div>
+  {% endif %}
+</section>
+{% endblock %}
+{% block extra_scripts %}
+<script>
+  document.querySelectorAll("[data-quantity-step]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const input = button.parentElement.querySelector('input[name="quantity"]');
+      const next = Number(input.value) + Number(button.dataset.quantityStep);
+      const min = Number(input.min);
+      const max = Number(input.max);
+      if (next >= min && next <= max) {
+        input.value = next;
+        input.form.requestSubmit();
+      }
+    });
+  });
+</script>
+{% endblock %}
